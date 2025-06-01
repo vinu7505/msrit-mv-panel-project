@@ -1,0 +1,11 @@
+//
+            {
+                name: "TEC1 12706 Peltier Module",
+                image: "YOUR_PELTIER_IMAGE_URL_HERE",
+                driveLink: "YOUR_PELTIER_DRIVE_LINK_HERE"
+            },
+            {
+                name: "Li-ion Batteries + Centiot Charging Module PCM BMS",
+                image: "YOUR_BATTERY_IMAGE_URL_HERE",
+                driveLink: "YOUR_BATTERY_DRIVE_LINK_HERE"
+            },//

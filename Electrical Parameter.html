@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Based MV Panel Project</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Animated Background - Darker Version */
+    body {
+      background: linear-gradient(-45deg, #993311, #8b1638, #0a4662, #0a6b5a);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    /* Login Page */
+    .login-container {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 450px;
+      transform: translateY(0);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .login-title {
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 36px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      animation: colorChange 5s infinite;
+      letter-spacing: 1px;
+    }
+
+    @keyframes colorChange {
+      0% { color: #8b1638; }
+      33% { color: #0a4662; }
+      66% { color: #0a6b5a; }
+      100% { color: #8b1638; }
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 15px 12px 45px;
+      border: none;
+      background: #f8f9fa;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      outline: none;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+      color: #23a6d5;
+      font-weight: 500;
+    }
+
+    .input-group input:focus {
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    
+    .input-group i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #e73c7e;
+      font-size: 18px;
+    }
+
+    .login-btn {
+      background: linear-gradient(45deg, #e73c7e, #23a6d5);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .login-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .error-message {
+      color: #ff3860;
+      margin-top: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* Main Dashboard */
+    .dashboard {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100vh;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #333;
+      animation: pulse 2s infinite;
+      font-weight: 700;
+      background: linear-gradient(45deg, #e73c7e, #23a6d5, #23d5ab);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .logout-btn {
+      background: linear-gradient(45deg, #ff3860, #ff7675);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .dashboard-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .phase-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .phase-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .phase-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .phase-card h2 {
+      font-size: 26px;
+      margin-bottom: 15px;
+      background: linear-gradient(45deg, #e73c7e, #23a6d5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+      font-weight: 700;
+    }
+
+    .parameter {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 16px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .parameter:hover {
+      background-color: rgba(35, 166, 213, 0.1);
+      border-radius: 5px;
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+
+    .parameter:last-child {
+      border-bottom: none;
+    }
+
+    .parameter span:first-child {
+      font-weight: bold;
+      color: #555;
+      display: flex;
+      align-items: center;
+    }
+
+    .parameter i {
+      margin-right: 8px;
+      color: #e73c7e;
+      font-size: 18px;
+    }
+
+    .parameter span:last-child {
+      color: #23a6d5;
+      font-weight: 600;
+      font-size: 18px;
+      background: linear-gradient(45deg, #23a6d5, #23d5ab);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .charts-container {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .charts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .parameter-select {
+      padding: 8px 15px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: white;
+      font-size: 16px;
+    }
+
+    .export-btn {
+      background: linear-gradient(45deg, #23a6d5, #23d5ab);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 50vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Container -->
+  <div class="container" id="loginContainer">
+    <div class="login-container">
+      <h1 class="login-title">Welcome To IoT Based MV Panel Project</h1>
+      <div class="input-group">
+        <i class="fas fa-user"></i>
+        <input type="text" id="username" placeholder="Username">
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="password" placeholder="Password">
+      </div>
+      <button class="login-btn" id="loginBtn">Login</button>
+      <p class="error-message" id="errorMessage">Invalid username or password!</p>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboardContainer">
+    <div class="header">
+      <h1><i class="fas fa-bolt"></i> Electrical Parameter - MV Panel Dashboard</h1>
+      <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+    
+    <div class="dashboard-content">
+      <div class="phase-cards">
+        <!-- R Phase Card -->
+        <div class="phase-card">
+          <h2>R Phase</h2>
+          <div class="parameter">
+            <span><i class="fas fa-bolt"></i> Voltage:</span>
+            <span id="r-voltage">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-tachometer-alt"></i> Current:</span>
+            <span id="r-current">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-plug"></i> Power:</span>
+            <span id="r-power">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-percentage"></i> Power Factor:</span>
+            <span id="r-pf">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-wave-square"></i> Frequency:</span>
+            <span id="r-frequency">--</span>
+          </div>
+        </div>
+        
+        <!-- Y Phase Card -->
+        <div class="phase-card">
+          <h2>Y Phase</h2>
+          <div class="parameter">
+            <span><i class="fas fa-bolt"></i> Voltage:</span>
+            <span id="y-voltage">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-tachometer-alt"></i> Current:</span>
+            <span id="y-current">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-plug"></i> Power:</span>
+            <span id="y-power">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-percentage"></i> Power Factor:</span>
+            <span id="y-pf">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-wave-square"></i> Frequency:</span>
+            <span id="y-frequency">--</span>
+          </div>
+        </div>
+        
+        <!-- B Phase Card -->
+        <div class="phase-card">
+          <h2>B Phase</h2>
+          <div class="parameter">
+            <span><i class="fas fa-bolt"></i> Voltage:</span>
+            <span id="b-voltage">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-tachometer-alt"></i> Current:</span>
+            <span id="b-current">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-plug"></i> Power:</span>
+            <span id="b-power">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-percentage"></i> Power Factor:</span>
+            <span id="b-pf">--</span>
+          </div>
+          <div class="parameter">
+            <span><i class="fas fa-wave-square"></i> Frequency:</span>
+            <span id="b-frequency">--</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Charts Container -->
+      <div class="charts-container">
+        <div class="charts-header">
+          <select class="parameter-select" id="parameterSelect">
+            <option value="Voltage">Voltage</option>
+            <option value="Current">Current</option>
+            <option value="Power">Power</option>
+            <option value="PowerFactor">Power Factor</option>
+            <option value="Frequency">Frequency</option>
+          </select>
+          <button class="export-btn" id="exportBtn"><i class="fas fa-file-excel"></i> Export to Excel</button>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="parameterChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB1OYQDxUdWoPf5EDJyP5kHfXJyP008X-M",
+      authDomain: "electrical-data-863cf.firebaseapp.com",
+      databaseURL: "https://electrical-data-863cf-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "electrical-data-863cf",
+      storageBucket: "electrical-data-863cf.firebasestorage.app",
+      messagingSenderId: "511308395629",
+      appId: "1:511308395629:web:370676e1046cc2ccda3b64",
+      measurementId: "G-2YDNGZ3JZP"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Login functionality
+    document.getElementById('loginBtn').addEventListener('click', function() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (username === 'msritmvpanelproject' && password === 'mvpanel@321') {
+        // Store login status in session storage
+        sessionStorage.setItem('isLoggedIn', 'true');
+        
+        // Show dashboard
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'flex';
+        
+        // Initialize dashboard
+        initDashboard();
+      } else {
+        document.getElementById('errorMessage').style.display = 'block';
+      }
+    });
+
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      sessionStorage.removeItem('isLoggedIn');
+      document.getElementById('loginContainer').style.display = 'flex';
+      document.getElementById('dashboardContainer').style.display = 'none';
+    });
+
+    // Check if user is already logged in
+    window.addEventListener('DOMContentLoaded', (event) => {
+      if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'flex';
+        initDashboard();
+      }
+    });
+
+    // Data storage for charting
+    let dataHistory = {
+      Voltage: { timestamps: [], R_Phase: [], Y_Phase: [], B_Phase: [] },
+      Current: { timestamps: [], R_Phase: [], Y_Phase: [], B_Phase: [] },
+      Power: { timestamps: [], R_Phase: [], Y_Phase: [], B_Phase: [] },
+      PowerFactor: { timestamps: [], R_Phase: [], Y_Phase: [], B_Phase: [] },
+      Frequency: { timestamps: [], R_Phase: [], Y_Phase: [], B_Phase: [] }
+    };
+    
+    // Common timestamp store to keep all charts synced
+    let commonTimestamps = [];
+    
+    // Data maps for real-time values
+    let latestData = {
+      R_Phase: {},
+      Y_Phase: {},
+      B_Phase: {}
+    };
+
+    // Initialize Chart
+    let parameterChart = null;
+
+    function initDashboard() {
+      // Reference the firebase paths
+      const rPhaseRef = ref(database, '/R_Phase');
+      const yPhaseRef = ref(database, '/Y_Phase');
+      const bPhaseRef = ref(database, '/B_Phase');
+
+      // Listen for R Phase data
+      onValue(rPhaseRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          updatePhaseDisplay('r', data);
+          latestData.R_Phase = data;
+          updateDataHistory();
+        }
+      });
+
+      // Listen for Y Phase data
+      onValue(yPhaseRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          updatePhaseDisplay('y', data);
+          latestData.Y_Phase = data;
+          updateDataHistory();
+        }
+      });
+
+      // Listen for B Phase data
+      onValue(bPhaseRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          updatePhaseDisplay('b', data);
+          latestData.B_Phase = data;
+          updateDataHistory();
+        }
+      });
+
+      // Initialize Chart
+      initChart();
+
+      // Parameter select change event
+      document.getElementById('parameterSelect').addEventListener('change', function() {
+        updateChart();
+      });
+
+      // Export button click event
+      document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+    }
+
+    function updatePhaseDisplay(phase, data) {
+      document.getElementById(`${phase}-voltage`).textContent = `${data.Voltage.toFixed(1)} V`;
+      document.getElementById(`${phase}-current`).textContent = `${data.Current.toFixed(2)} A`;
+      document.getElementById(`${phase}-power`).textContent = `${data.Power.toFixed(1)} W`;
+      document.getElementById(`${phase}-pf`).textContent = `${data.PowerFactor.toFixed(2)}`;
+      document.getElementById(`${phase}-frequency`).textContent = `${data.Frequency.toFixed(1)} Hz`;
+    }
+
+    function updateDataHistory() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+      const maxPoints = 50;
+      
+      // Add new timestamp
+      if (commonTimestamps.length === 0 || commonTimestamps[commonTimestamps.length - 1] !== timeStr) {
+        commonTimestamps.push(timeStr);
+        
+        // Limit to maxPoints
+        if (commonTimestamps.length > maxPoints) {
+          commonTimestamps.shift();
+        }
+        
+        // Update all parameters at once with synchronized timestamps
+        for (const param of ['Voltage', 'Current', 'Power', 'PowerFactor', 'Frequency']) {
+          // Update timestamps for this parameter
+          dataHistory[param].timestamps = [...commonTimestamps];
+          
+          // Add data points for all phases
+          for (const phase of ['R_Phase', 'Y_Phase', 'B_Phase']) {
+            if (latestData[phase] && latestData[phase][param] !== undefined) {
+              dataHistory[param][phase].push(latestData[phase][param]);
+              
+              // Trim if needed
+              if (dataHistory[param][phase].length > maxPoints) {
+                dataHistory[param][phase].shift();
+              }
+            } else {
+              // If no data available, push null or previous value
+              const prevValue = dataHistory[param][phase].length > 0 ? 
+                dataHistory[param][phase][dataHistory[param][phase].length - 1] : 0;
+              dataHistory[param][phase].push(prevValue);
+              
+              // Trim if needed
+              if (dataHistory[param][phase].length > maxPoints) {
+                dataHistory[param][phase].shift();
+              }
+            }
+          }
+        }
+        
+        // Update chart if it exists
+        if (parameterChart) {
+          updateChart();
+        }
+      }
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('parameterChart').getContext('2d');
+      parameterChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'R Phase',
+              data: [],
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderWidth: 2,
+              tension: 0.3
+            },
+            {
+              label: 'Y Phase',
+              data: [],
+              borderColor: 'rgba(255, 206, 86, 1)',
+              backgroundColor: 'rgba(255, 206, 86, 0.2)',
+              borderWidth: 2,
+              tension: 0.3
+            },
+            {
+              label: 'B Phase',
+              data: [],
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderWidth: 2,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index',
+          },
+          scales: {
+            y: {
+              beginAtZero: false
+            }
+          }
+        }
+      });
+      
+      updateChart();
+    }
+
+    function updateChart() {
+      const selectedParameter = document.getElementById('parameterSelect').value;
+      const data = dataHistory[selectedParameter];
+      
+      parameterChart.data.labels = data.timestamps;
+      parameterChart.data.datasets[0].data = data.R_Phase;
+      parameterChart.data.datasets[1].data = data.Y_Phase;
+      parameterChart.data.datasets[2].data = data.B_Phase;
+      
+      parameterChart.options.scales.y.title = {
+        display: true,
+        text: getParameterUnit(selectedParameter)
+      };
+      
+      parameterChart.update();
+    }
+
+    function getParameterUnit(parameter) {
+      switch(parameter) {
+        case 'Voltage': return 'Volts (V)';
+        case 'Current': return 'Amperes (A)';
+        case 'Power': return 'Watts (W)';
+        case 'PowerFactor': return 'PF';
+        case 'Frequency': return 'Hertz (Hz)';
+        default: return '';
+      }
+    }
+
+    function exportToExcel() {
+      const selectedParameter = document.getElementById('parameterSelect').value;
+      const data = dataHistory[selectedParameter];
+      
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      wb.Props = {
+        Title: "Electrical Parameters",
+        Subject: "MV Panel Data",
+        Author: "IoT Based MV Panel Project",
+        CreatedDate: new Date()
+      };
+      
+      // Prepare data
+      const wsData = [
+        ['Timestamp', 'R Phase', 'Y Phase', 'B Phase']
+      ];
+      
+      for (let i = 0; i < data.timestamps.length; i++) {
+        wsData.push([
+          data.timestamps[i], 
+          data.R_Phase[i] !== undefined ? data.R_Phase[i] : 0, 
+          data.Y_Phase[i] !== undefined ? data.Y_Phase[i] : 0, 
+          data.B_Phase[i] !== undefined ? data.B_Phase[i] : 0
+        ]);
+      }
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, selectedParameter);
+      
+      // Generate Excel file and trigger download
+      const wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
+      
+      // Convert to blob and download
+      function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+      }
+      
+      const blob = new Blob([s2ab(wbout)], {type:"application/octet-stream"});
+      saveAs(blob, "Electrical_Parameters_" + selectedParameter + ".xlsx");
+    }
+  </script>
+</body>
+</html>

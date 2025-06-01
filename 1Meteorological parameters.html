@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Based MV Panel Project</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gauge.js/1.3.7/gauge.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKwvWx5bhEPVYuAs2icPdtYh16PgFyn8Y",
+            authDomain: "meteorological--data.firebaseapp.com",
+            projectId: "meteorological--data",
+            storageBucket: "meteorological--data.firebasestorage.app",
+            messagingSenderId: "1059700776198",
+            appId: "1:1059700776198:web:6f04fb39895fd4789cd287",
+            measurementId: "G-ZG28ZD7W8W",
+            databaseURL: "https://meteorological--data-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const database = getDatabase(app);
+        
+        // Once the DOM is loaded, set up everything
+        document.addEventListener('DOMContentLoaded', () => {
+            // Session management variables
+            let sessionTimeout;
+            const SESSION_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+            
+            // Check if user was previously logged in (using localStorage)
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                initDashboard();
+                startSessionTimer();
+            } else {
+                document.getElementById('dashboard').style.display = 'none';
+            }
+            
+            function startSessionTimer() {
+                // Clear any existing timeout
+                if (sessionTimeout) {
+                    clearTimeout(sessionTimeout);
+                }
+                
+                // Set new timeout for auto logout
+                sessionTimeout = setTimeout(() => {
+                    logout();
+                    alert('Your session has expired. Please login again.');
+                }, SESSION_DURATION);
+                
+                // Reset timer on user activity
+                ['click', 'mousemove', 'keypress'].forEach(event => {
+                    document.addEventListener(event, resetSessionTimer);
+                });
+            }
+            
+            function resetSessionTimer() {
+                // Reset the session timer when there's user activity
+                if (localStorage.getItem('isLoggedIn') === 'true') {
+                    startSessionTimer();
+                }
+            }
+            
+            function logout() {
+                document.getElementById('dashboard').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                localStorage.removeItem('isLoggedIn');
+                if (sessionTimeout) {
+                    clearTimeout(sessionTimeout);
+                }
+            }
+            
+            // Setup login form handler
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (username === 'msritmvpanelproject' && password === 'mvpanel@321') {
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                    localStorage.setItem('isLoggedIn', 'true');
+                    initDashboard();
+                    startSessionTimer();
+                } else {
+                    alert('Invalid credentials. Please try again.');
+                }
+            });
+            
+            // Setup logout button
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                logout();
+            });
+            
+            // Setup gauge and chart when dashboard is shown
+            function initDashboard() {
+                const tempData = [];
+                const humidityData = [];
+                const labels = [];
+                let count = 0;
+                
+                // Initialize temperature gauge
+                const tempGauge = new Gauge(document.getElementById('tempGauge')).setOptions({
+                    angle: -0.25,
+                    lineWidth: 0.2,
+                    radiusScale: 0.9,
+                    pointer: {
+                        length: 0.6,
+                        strokeWidth: 0.035,
+                        color: '#000000'
+                    },
+                    limitMax: false,
+                    limitMin: false,
+                    colorStart: '#6FADCF',
+                    colorStop: '#FF4500',
+                    strokeColor: '#E0E0E0',
+                    generateGradient: true,
+                    highDpiSupport: true,
+                    staticLabels: {
+                        font: "12px sans-serif",
+                        labels: [0, 10, 20, 30, 40, 50],
+                        color: "#000000",
+                        fractionDigits: 0
+                    },
+                    staticZones: [
+                        {strokeStyle: "#30B32D", min: 0, max: 15},
+                        {strokeStyle: "#FFDD00", min: 15, max: 26},
+                        {strokeStyle: "#F03E3E", min: 26, max: 50}
+                    ],
+                });
+                tempGauge.maxValue = 50;
+                tempGauge.setMinValue(0);
+                tempGauge.animationSpeed = 32;
+                tempGauge.set(20); // Initial value
+                
+                // Initialize humidity gauge
+                const humidityGauge = new Gauge(document.getElementById('humidityGauge')).setOptions({
+                    angle: -0.25,
+                    lineWidth: 0.2,
+                    radiusScale: 0.9,
+                    pointer: {
+                        length: 0.6,
+                        strokeWidth: 0.035,
+                        color: '#000000'
+                    },
+                    limitMax: false,
+                    limitMin: false,
+                    colorStart: '#6FADCF',
+                    colorStop: '#8DFF33',
+                    strokeColor: '#E0E0E0',
+                    generateGradient: true,
+                    highDpiSupport: true,
+                    staticLabels: {
+                        font: "12px sans-serif",
+                        labels: [0, 20, 40, 60, 80, 100],
+                        color: "#000000",
+                        fractionDigits: 0
+                    },
+                    staticZones: [
+                        {strokeStyle: "#F03E3E", min: 0, max: 30},
+                        {strokeStyle: "#FFDD00", min: 30, max: 60},
+                        {strokeStyle: "#30B32D", min: 60, max: 100}
+                    ],
+                });
+                humidityGauge.maxValue = 100;
+                humidityGauge.setMinValue(0);
+                humidityGauge.animationSpeed = 32;
+                humidityGauge.set(50); // Initial value
+                
+                // Initialize temperature chart
+                const tempCtx = document.getElementById('tempChart').getContext('2d');
+                const tempChart = new Chart(tempCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Temperature (°C)',
+                            data: tempData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 50
+                            }
+                        }
+                    }
+                });
+                
+                // Initialize humidity chart
+                const humidityCtx = document.getElementById('humidityChart').getContext('2d');
+                const humidityChart = new Chart(humidityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Humidity (%)',
+                            data: humidityData,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+                
+                // Listen for Firebase updates
+                const sensorRef = ref(database, 'sensor');
+                onValue(sensorRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        // Update gauges
+                        const temperature = data.temperature || 20;
+                        const humidity = data.humidity || 50;
+                        const relayState = data.relayState || false;
+                        
+                        tempGauge.set(temperature);
+                        humidityGauge.set(humidity);
+                        
+                        // Update gauge value display
+                        document.getElementById('tempValue').textContent = temperature.toFixed(1) + '°C';
+                        document.getElementById('humidityValue').textContent = humidity.toFixed(1) + '%';
+                        
+                        // Update indicator status based on relay state
+                        if (relayState) {
+                            document.getElementById('heaterStatus').textContent = 'ON';
+                            document.getElementById('heaterStatus').className = 'status-on';
+                        } else {
+                            document.getElementById('heaterStatus').textContent = 'OFF';
+                            document.getElementById('heaterStatus').className = 'status-off';
+                        }
+                        
+                        // Add data to arrays for charts
+                        const now = new Date();
+                        const timeStr = now.getHours() + ':' + 
+                                     (now.getMinutes() < 10 ? '0' : '') + now.getMinutes() + ':' + 
+                                     (now.getSeconds() < 10 ? '0' : '') + now.getSeconds();
+                        
+                        labels.push(timeStr);
+                        tempData.push(temperature);
+                        humidityData.push(humidity);
+                        
+                        // Keep the last 10 data points
+                        if (labels.length > 10) {
+                            labels.shift();
+                            tempData.shift();
+                            humidityData.shift();
+                        }
+                        
+                        // Update charts
+                        tempChart.update();
+                        humidityChart.update();
+                    }
+                });
+                
+                // Setup download for temperature data
+                document.getElementById('tempChartContainer').addEventListener('click', () => {
+                    downloadExcel('Temperature', labels, tempData);
+                });
+                
+                // Setup download for humidity data
+                document.getElementById('humidityChartContainer').addEventListener('click', () => {
+                    downloadExcel('Humidity', labels, humidityData);
+                });
+                
+                function downloadExcel(type, timeLabels, values) {
+                    const workbook = XLSX.utils.book_new();
+                    const data = [];
+                    
+                    // Add headers
+                    data.push(['Time', `${type} Value`]);
+                    
+                    // Add data rows
+                    for (let i = 0; i < timeLabels.length; i++) {
+                        data.push([timeLabels[i], values[i]]);
+                    }
+                    
+                    const worksheet = XLSX.utils.aoa_to_sheet(data);
+                    XLSX.utils.book_append_sheet(workbook, worksheet, type);
+                    XLSX.writeFile(workbook, `${type}_Data.xlsx`);
+                }
+            }
+        });
+    </script>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            /* Changed to a burgundy color background to match the image */
+            background-color: #8B1A3D;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Login Page Styles - Updated to match the image */
+        #loginPage {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .login-container {
+            background: #f9f0f2;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            animation: fadeIn 1s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-container h1 {
+            margin-bottom: 40px;
+            color: #8B1A3D;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        /* Modified to position icons inside input boxes */
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8B1A3D;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            background-color: #ffffff;
+            color: #333;
+        }
+        
+        .input-field:focus {
+            border-color: #8B1A3D;
+            box-shadow: 0 0 8px rgba(139, 26, 61, 0.3);
+        }
+        
+        .login-btn {
+            background: linear-gradient(45deg, #8B1A3D, #C13B6B);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Dashboard Styles */
+        #dashboard {
+            padding: 20px;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            background-color: #f5f5f5;
+            display: none;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #8B1A3D, #C13B6B);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            animation: slideDown 1s;
+            position: relative;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dashboard-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .gauge-container {
+            width: 45%;
+            min-width: 300px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            animation: fadeIn 1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .gauge-container h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gauge-wrapper {
+            height: 180px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .gauge {
+            width: 200px;
+            height: 180px;
+        }
+        
+        .value-display {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-top: 15px;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        
+        .chart-section {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .chart-container {
+            width: 45%;
+            min-width: 300px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+            animation: fadeIn 1.5s;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chart-container h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container p {
+            color: #666;
+            font-size: 1rem;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .indicator {
+            margin-top: 20px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 2s;
+        }
+        
+        .indicator h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.6rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-on {
+            color: #FF4500;
+            font-weight: bold;
+            font-size: 1.8rem;
+            text-shadow: 0px 0px 8px rgba(255, 69, 0, 0.3);
+            animation: blink 1.5s infinite alternate;
+        }
+        
+        @keyframes blink {
+            from { opacity: 0.7; }
+            to { opacity: 1; }
+        }
+        
+        .status-off {
+            color: #3CB371;
+            font-weight: bold;
+            font-size: 1.8rem;
+            text-shadow: 0px 0px 8px rgba(60, 179, 113, 0.3);
+        }
+        
+        .logout-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        #logoutBtn {
+            background: linear-gradient(45deg, #8B1A3D, #C13B6B);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        #logoutBtn i {
+            margin-right: 8px;
+        }
+        
+        #logoutBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #8B1A3D, #A12B5B);
+        }
+        
+        /* Animation for chart loading */
+        @keyframes chartLoad {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        canvas {
+            animation: chartLoad 1s ease-out;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .gauge-container, .chart-container {
+                width: 100%;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .logout-container {
+                top: 10px;
+                right: 10px;
+            }
+            
+            #logoutBtn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <h1>Welcome To IoT Based MV Panel Project</h1>
+            <form id="loginForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" class="input-field" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" class="input-field" placeholder="Password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Dashboard -->
+    <div id="dashboard">
+        <!-- Logout Button -->
+        <div class="logout-container">
+            <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+        
+        <div class="dashboard-header">
+            <h1>Meteorological Parameters</h1>
+        </div>
+        
+        <div class="dashboard-content">
+            <!-- Temperature Gauge -->
+            <div class="gauge-container">
+                <h2>Temperature</h2>
+                <div class="gauge-wrapper">
+                    <canvas id="tempGauge" class="gauge"></canvas>
+                </div>
+                <div id="tempValue" class="value-display">0.0°C</div>
+            </div>
+            
+            <!-- Humidity Gauge -->
+            <div class="gauge-container">
+                <h2>Humidity</h2>
+                <div class="gauge-wrapper">
+                    <canvas id="humidityGauge" class="gauge"></canvas>
+                </div>
+                <div id="humidityValue" class="value-display">0.0%</div>
+            </div>
+            
+            <!-- Heater Status Indicator -->
+            <div class="indicator">
+                <h3>Heater Status:</h3>
+                <span id="heaterStatus" class="status-off">OFF</span>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="chart-section">
+                <!-- Temperature Chart -->
+                <div id="tempChartContainer" class="chart-container">
+                    <h2>Temperature Graph</h2>
+                    <canvas id="tempChart"></canvas>
+                    <p>Click to download Excel data</p>
+                </div>
+                
+                <!-- Humidity Chart -->
+                <div id="humidityChartContainer" class="chart-container">
+                    <h2>Humidity Graph</h2>
+                    <canvas id="humidityChart"></canvas>
+                    <p>Click to download Excel data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

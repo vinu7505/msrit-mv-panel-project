@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Project Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50, #4a69bd);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding: 50px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .header {
+            background-color: #f7b731;
+            color: #000;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 40px;
+            border-radius: 10px;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .team-member {
+            display: flex;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 1200px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+        
+        .member-photo {
+            width: 250px;
+            height: 300px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .member-info {
+            padding: 30px;
+            flex: 1;
+        }
+        
+        .member-name {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .member-description {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .member-contact {
+            margin-bottom: 10px;
+        }
+        
+        .member-email, .member-phone {
+            display: block;
+            margin: 5px 0;
+            color: #2980b9;
+            text-decoration: none;
+        }
+        
+        .bio-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .bio-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lab-section {
+            text-align: center;
+        }
+        
+        .lab-image {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lab-heading {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .team-member {
+                flex-direction: column;
+            }
+            
+            .member-photo {
+                width: 100%;
+                height: 250px;
+            }
+            
+            .header {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='Iot Bsed M V  control Panel.html'">BACK</button>
+
+<section id="guide" class="section">
+    <div class="header">Our Project Guide</div>
+    <div class="team-member">
+        <div class="member-photo">
+            <img src="cb.png" alt="Dr. Chandrashekhar Badachi" class="photo" />
+        </div>
+        <div class="member-info">
+            <h2 class="member-name">Dr. Chandrashekhar Badachi</h2>
+            <p class="member-description">
+                Dr. Chandrashekhar Badachi is working in the Electrical & Electronics Engineering department of MSRIT. His areas of interest are high voltage engineering, outdoor insulation, mathematical modeling, electrical machines and power systems.
+            </p>
+            <div class="member-contact">
+                <a href="mailto:badachi@msrit.edu" class="member-email">Email: badachi@msrit.edu or chandru.badachi@gmail.com</a>
+                <a href="tel:9740000909" class="member-phone">Phone: 9740000909</a>
+            </div>
+            <a href="https://www.msrit.edu/department/faculty-detail.html?dept=eee&ID=2" class="bio-button">Full Bio</a>
+        </div>
+    </div>
+<section>
+
+
+  <section id="team" class="section">
+    <div class="header">Project Team</div>
+
+    <div class="team-member">
+        <div class="member-photo">
+            <img src="vin1.png" alt="Mr. Vinayak Venkatesh Kulakarani" class="photo" />
+        </div>
+        <div class="member-info">
+            <h2 class="member-name">Mr. Vinayak Venkatesh Kulakarani</h2>
+            <p class="member-description">
+                Mr. Vinayak Venkatesh Kulakarani is Student of the Electrical & Electronics Engineering department of MSRIT. His areas of interest are high voltage engineering, indoor insulation, IoT System, Autocaed Designing, Microcontroller Programming, Electric Machine and LabView Simulation.
+            </p>
+            <div class="member-contact">
+                <a href="mailto:vinayakkulkarni9972@gmai.com" class="member-email">Email: vinayakkulkarni9972@gmai.com</a>
+                <a href="tel:6361346849" class="member-phone">Phone: 6361346849</a>
+            </div>
+            <a href="https://www.linkedin.com/in/vinayak-kulakarani" class="bio-button">Full Bio</a>
+        </div>
+    </div>
+
+    <div class="team-member">
+        <div class="member-photo">
+            <img src="pra.png" alt="Mr. Prabhanjan Akamanchi" class="photo" />
+        </div>
+        <div class="member-info">
+            <h2 class="member-name">Mr. Prabhanjan Akamanchi</h2>
+            <p class="member-description">
+                Mr. Prabhanjan Akamanchi is a student of the Electrical & Electronics Engineering department of MSRIT. His areas of interest are Switchgear and protections, High voltage engineering, Electrical Machines, AutoCAD designing and LabView simulation.
+            </p>
+            <div class="member-contact">
+                <a href="mailto:prabhanjanjaaka@gmail.com" class="member-email">E-mail: prabhanjanjaaka@gmail.com</a>
+                <a href="tel:6361367261" class="member-phone">Phone: 6361367261</a>
+            </div>
+            <a href="https://www.linkedin.com/in/prabhanjan-akamanchi-b28b80292" class="bio-button">Full Bio</a>
+        </div>
+    </div>
+
+    <div class="team-member">
+        <div class="member-photo">
+            <img src="giri.png" alt="Mr. Girisha HR" class="photo" />
+        </div>
+        <div class="member-info">
+            <h2 class="member-name">Mr. Girisha HR</h2>
+            <p class="member-description">
+                Mr. Girisha HR is Student of the Electrical & Electronics Engineering department of MSRIT. His areas of interest are high voltage engineering, indoor insulation, Electric Machine and PLC Designing.
+            </p>
+            <div class="member-contact">
+                <a href="mailto:hrgirish98@gmail.com" class="member-email">Email: hrgirish98@gmail.com</a>
+                <a href="tel:9353530816" class="member-phone">Phone: 9353530816</a>
+            </div>
+            <a href="#" class="bio-button">Full Bio</a>
+        </div>
+    </div>
+
+    <div class="team-member">
+        <div class="member-photo">
+            <img src="met.png" alt="Mr. Bharathkumar K M" class="photo" />
+        </div>
+        <div class="member-info">
+            <h2 class="member-name">Mr. Bharathkumar K M</h2>
+            <p class="member-description">
+                Mr. Bharathkumar K M is Student of the Electrical & Electronics Engineering department of MSRIT. His areas of interest are high voltage engineering, indoor insulation, IoT System, Autocaed Designing, Microcontroller Programming, Electric Machine and LabView Simulation.
+            </p>
+            <div class="member-contact">
+                <a href="mailto:bharathvectors@gmail.com" class="member-email">Email: bharathvectors@gmail.com</a>
+                <a href="tel:7892149323" class="member-phone">Phone: 7892149323</a>
+            </div>
+            <a href="#" class="bio-button">Full Bio</a>
+        </div>
+    <div>
+</section>
+
+
+    <section id="laboratory" class="section lab-section">
+        <div class="header">Work Testing In Laboratory</div>
+        
+        <div>
+            <img src="n1.jpg" alt="Environmental image" class="lab-image">
+            <div class="lab-heading">Load Testing Experimental Setup</div>
+        </div>
+        
+        <div>
+    <video width="800" height="400" controls class="lab-video">
+        <source src="vdo2.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="lab-heading">Load Testing Experimental</div>
+</div>
+
+        
+        <div>
+            <img src="h1.jpg" alt="Environmental image" class="lab-image">
+            <div class="lab-heading">Temperature and Humidity Testing Setup</div>
+        </div>
+<div>
+    <video width="800" height="400" controls class="lab-video">
+        <source src="h1.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="lab-heading">Load Testing Experimental</div>
+</div>
+
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            // Show first section initially
+            if (sections.length > 0) {
+                sections[0].classList.add('visible');
+            }
+            
+            // Function to check if an element is in viewport
+            function isElementInViewport(el) {
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top <= (window.innerHeight * 0.7) &&
+                    rect.bottom >= (window.innerHeight * 0.3)
+                );
+            }
+            
+            // Function to handle scroll events
+            function handleScroll() {
+                sections.forEach(section => {
+                    if (isElementInViewport(section)) {
+                        section.classList.add('visible');
+                    }
+                });
+            }
+            
+            // Add scroll event listener
+            window.addEventListener('scroll', handleScroll);
+            
+            // Trigger once on load
+            handleScroll();
+        });
+    </script>
+</body>
+</html>
